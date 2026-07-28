@@ -4,7 +4,7 @@ from pathlib import Path
 
 def trouver_dossier_assets():
     """Cherche le dossier 'assets/' en remontant depuis ce fichier (robuste, que
-    ce script soit à la racine du repo ou dans un sous-dossier comme vues/)."""
+    ce script soit à la racine du repo ou dans un sous-dossier)."""
     ici = Path(__file__).resolve().parent
     for candidat in [ici, ici.parent, ici.parent.parent]:
         if (candidat / "assets").is_dir():
@@ -86,4 +86,3 @@ with col2:
     )
 
 st.markdown("---")
-st.caption("Application développée avec Streamlit — ENSAE Dakar, 2026.")
