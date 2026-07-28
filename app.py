@@ -1,10 +1,12 @@
 import streamlit as st
+from theme import injecter_css
 
 st.set_page_config(
     page_title="Optimisation Accès aux Soins - Sénégal",
     page_icon="🏥",
     layout="wide"
 )
+injecter_css()
 
 # --- En-tête ---
 st.title("🏥 Optimisation de l'accès aux soins de santé au Sénégal")

@@ -3,7 +3,11 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
+from theme import injecter_css, carte_metrique, appliquer_theme_plotly, COULEURS
+from libelles import libelle, LIBELLES_PARTIES
+
 st.set_page_config(page_title="Statistiques descriptives", page_icon="📊", layout="wide")
+injecter_css()
 
 st.title("📊 Statistiques descriptives")
 st.caption(
@@ -66,42 +70,49 @@ for nom, df in feuilles.items():
 st.success(f"Données chargées : {len(feuilles)} feuilles détectées.")
 
 
-def afficher_national(df, titre):
+def afficher_national(df, accent):
     """Affiche un tableau national (colonnes: indicateur?, modalite, pct)."""
     if "indicateur" in df.columns:
         for indic in df["indicateur"].unique():
             sous = df[df["indicateur"] == indic].copy()
+            titre = libelle(indic)
+            st.markdown(f"**{titre}**")
             c1, c2 = st.columns([1, 2])
             with c1:
                 for _, row in sous.iterrows():
-                    st.metric(f"{indic} — {row['modalite']}", f"{row['pct']:.1f} %")
+                    carte_metrique(row["modalite"], f"{row['pct']:.1f} %", accent=accent)
             with c2:
                 sous["pct_txt"] = sous["pct"].map(lambda v: f"{v:.1f}")
-                fig = px.bar(sous, x="modalite", y="pct", title=indic, text="pct_txt")
+                fig = px.bar(sous, x="modalite", y="pct", title=titre, text="pct_txt")
+                appliquer_theme_plotly(fig)
                 st.plotly_chart(fig, width='stretch')
     else:
         st.dataframe(df, width='stretch')
 
 
-def afficher_regional(df, titre):
+def afficher_regional(df, accent):
     """Affiche un tableau régional (colonnes: indicateur?, region, modalite, pct)."""
     if "indicateur" in df.columns:
-        indicateurs = df["indicateur"].unique()
-        choix = st.selectbox(f"Indicateur — {titre}", indicateurs, key=f"sel_{titre}")
+        indicateurs = list(df["indicateur"].unique())
+        choix = st.selectbox(
+            "Indicateur", indicateurs, format_func=libelle, key=f"sel_{id(df)}"
+        )
         sous = df[df["indicateur"] == choix]
+        titre = libelle(choix)
     else:
         sous = df
-        choix = titre
+        titre = "Répartition régionale"
 
     if "modalite" in sous.columns:
         fig = px.bar(sous, x="region", y="pct", color="modalite", barmode="stack",
-                     title=f"{choix} — par région")
+                     title=f"{titre} — par région")
     else:
         # cas d'une feuille au format large (une colonne par variable)
         value_cols = [c for c in sous.columns if c != "region"]
         fig = px.bar(sous, x="region", y=value_cols, barmode="group",
-                     title=f"{choix} — par région")
+                     title=f"{titre} — par région")
     fig.update_layout(xaxis_tickangle=-45)
+    appliquer_theme_plotly(fig)
     st.plotly_chart(fig, width='stretch')
 
 
@@ -110,13 +121,13 @@ def afficher_regional(df, titre):
 # ----------------------------------------------------------------------
 onglets_disponibles = []
 mapping = {
-    "Partie A — Morbidité & recours": ("PartieA_national", "PartieA_regional"),
-    "Partie B — Accès & qualité perçue": ("PartieB_national", "PartieB_regional"),
-    "Partie C — Couverture & prévention": ("PartieC_national", "PartieC_regional"),
+    "Partie A — Morbidité & recours": ("PartieA_national", "PartieA_regional", COULEURS["teal"]),
+    "Partie B — Accès & qualité perçue": ("PartieB_national", "PartieB_regional", COULEURS["ocre"]),
+    "Partie C — Couverture & prévention": ("PartieC_national", "PartieC_regional", COULEURS["sauge"]),
 }
 
 # Ne garder que les onglets pour lesquels au moins une feuille existe réellement
-for nom_onglet, (nat, reg) in mapping.items():
+for nom_onglet, (nat, reg, _) in mapping.items():
     if (nat and nat in feuilles) or (reg and reg in feuilles):
         onglets_disponibles.append(nom_onglet)
 
@@ -127,15 +138,15 @@ if not onglets_disponibles:
 tabs = st.tabs(onglets_disponibles)
 
 for tab, nom_onglet in zip(tabs, onglets_disponibles):
-    nat, reg = mapping[nom_onglet]
+    nat, reg, accent = mapping[nom_onglet]
     with tab:
-        st.subheader(nom_onglet)
+        st.subheader(LIBELLES_PARTIES.get(nom_onglet, nom_onglet))
         if nat and nat in feuilles:
-            st.markdown("**Niveau national**")
-            afficher_national(feuilles[nat], nom_onglet)
+            st.markdown("##### Niveau national")
+            afficher_national(feuilles[nat], accent)
         if reg and reg in feuilles:
-            st.markdown("**Niveau régional**")
-            afficher_regional(feuilles[reg], nom_onglet)
+            st.markdown("##### Niveau régional")
+            afficher_regional(feuilles[reg], accent)
 
 with st.expander("🔍 Voir les feuilles brutes du fichier Excel"):
     for nom, df in feuilles.items():
