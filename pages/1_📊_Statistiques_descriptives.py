@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pathlib import Path
 
 st.set_page_config(page_title="Statistiques descriptives", page_icon="📊", layout="wide")
 
@@ -12,25 +13,39 @@ st.caption(
     "dynamiquement à partir de son contenu."
 )
 
-fichier = st.file_uploader(
-    "📂 Dépose le fichier `stats_desc_sante.xlsx` (généré par calculs_stats_desc.py)",
-    type=["xlsx"],
-)
+# Chemin du fichier agrégé committé dans le repo (aucune donnée individuelle,
+# donc pas de souci à le versionner sur GitHub). Place ton export ici :
+# data/stats_desc_sante.xlsx à la racine du repo.
+CHEMIN_PAR_DEFAUT = Path(__file__).resolve().parent.parent / "data" / "stats_desc_sante.xlsx"
+
+fichier = None
+if CHEMIN_PAR_DEFAUT.exists():
+    fichier = CHEMIN_PAR_DEFAUT
+    st.caption(f"📁 Données chargées automatiquement depuis `{CHEMIN_PAR_DEFAUT.name}` (repo).")
+
+with st.expander("🔄 Charger un autre fichier (écrase les données par défaut pour cette session)"):
+    upload = st.file_uploader(
+        "Dépose un fichier `stats_desc_sante.xlsx` (généré par calculs_stats_desc.py)",
+        type=["xlsx"],
+    )
+    if upload is not None:
+        fichier = upload
 
 if fichier is None:
     st.info(
         """
-        **Aucun fichier chargé pour l'instant.**
+        **Aucune donnée disponible.**
 
         1. Récupère `calculs_stats_desc.py` (à la racine du repo).
         2. Lance-le en local, à côté d'un dossier `Donnees/` contenant tes
            3 fichiers EHCVM (`s00_me_SEN2018.dta`, `s03_me_SEN2018.dta`,
            `ehcvm_ponderations_SEN2018.dta`).
-        3. Il produit `stats_desc_sante.xlsx` — dépose-le ci-dessus.
-
-        Les données individuelles des ménages ne quittent jamais ton
-        ordinateur : seuls les agrégats (pourcentages, moyennes) sont
-        dans ce fichier Excel.
+        3. Il produit `stats_desc_sante.xlsx`.
+        4. **Pour que ce soit permanent** : place ce fichier dans
+           `data/stats_desc_sante.xlsx` à la racine de ton repo GitHub et
+           commit-le (c'est juste des agrégats, aucune donnée individuelle).
+           La page le rechargera automatiquement à chaque visite.
+        5. **Ou temporairement** : dépose-le via le menu ci-dessus.
         """
     )
     st.stop()
@@ -42,20 +57,27 @@ except Exception as e:
     st.error(f"Impossible de lire le fichier : {e}")
     st.stop()
 
-st.success(f"Fichier chargé : {len(feuilles)} feuilles détectées.")
+# Arrondi systématique des colonnes numériques (évite les artefacts
+# d'imprecision flottante à la relecture du xlsx, ex: 10.6999998092)
+for nom, df in feuilles.items():
+    for col in df.select_dtypes(include="number").columns:
+        feuilles[nom][col] = df[col].round(1)
+
+st.success(f"Données chargées : {len(feuilles)} feuilles détectées.")
 
 
 def afficher_national(df, titre):
     """Affiche un tableau national (colonnes: indicateur?, modalite, pct)."""
     if "indicateur" in df.columns:
         for indic in df["indicateur"].unique():
-            sous = df[df["indicateur"] == indic]
+            sous = df[df["indicateur"] == indic].copy()
             c1, c2 = st.columns([1, 2])
             with c1:
                 for _, row in sous.iterrows():
-                    st.metric(f"{indic} — {row['modalite']}", f"{row['pct']} %")
+                    st.metric(f"{indic} — {row['modalite']}", f"{row['pct']:.1f} %")
             with c2:
-                fig = px.bar(sous, x="modalite", y="pct", title=indic, text="pct")
+                sous["pct_txt"] = sous["pct"].map(lambda v: f"{v:.1f}")
+                fig = px.bar(sous, x="modalite", y="pct", title=indic, text="pct_txt")
                 st.plotly_chart(fig, width='stretch')
     else:
         st.dataframe(df, width='stretch')
