@@ -1,4 +1,36 @@
 import streamlit as st
+from pathlib import Path
+
+
+def trouver_dossier_assets():
+    """Cherche le dossier 'assets/' en remontant depuis ce fichier (robuste, que
+    ce script soit à la racine du repo ou dans un sous-dossier comme vues/)."""
+    ici = Path(__file__).resolve().parent
+    for candidat in [ici, ici.parent, ici.parent.parent]:
+        if (candidat / "assets").is_dir():
+            return candidat / "assets"
+    return ici / "assets"  # par défaut, pour un message d'erreur clair si absent
+
+
+DOSSIER_ASSETS = trouver_dossier_assets()
+
+# --- Logos (ANSD à gauche, ENSAE à droite) ---
+logo_gauche, logo_centre, logo_droite = st.columns([1, 2, 1])
+
+chemin_ansd = DOSSIER_ASSETS / "logo_ansd.jpeg"
+chemin_ensae = DOSSIER_ASSETS / "logo_ensae.jpeg"
+
+if chemin_ansd.exists() and chemin_ensae.exists():
+    with logo_gauche:
+        st.image(str(chemin_ansd), width=140)
+    with logo_droite:
+        st.image(str(chemin_ensae), width=140)
+else:
+    st.warning(
+        f"⚠️ Logos introuvables dans `{DOSSIER_ASSETS}`. Vérifie que le dossier "
+        "`assets/` (avec `logo_ansd.jpeg` et `logo_ensae.jpeg`) a bien été "
+        "poussé sur GitHub, à la racine du repo."
+    )
 
 # --- En-tête ---
 st.title("🏥 Optimisation de l'accès aux centres de santé au Sénégal")

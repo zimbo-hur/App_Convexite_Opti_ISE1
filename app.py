@@ -1,20 +1,18 @@
 import streamlit as st
-from pathlib import Path
+from theme import injecter_css
 
-DOSSIER_ASSETS = Path(__file__).resolve().parent.parent / "assets"
-
-# --- Logos (ANSD à gauche, ENSAE à droite) ---
-logo_gauche, logo_centre, logo_droite = st.columns([1, 2, 1])
-with logo_gauche:
-    st.image(str(DOSSIER_ASSETS / "logo_ansd.jpeg"), width=140)
-with logo_droite:
-    st.image(str(DOSSIER_ASSETS / "logo_ensae.jpeg"), width=140)
+st.set_page_config(
+    page_title="Optimisation Accès aux Soins - Sénégal",
+    page_icon="🏥",
+    layout="wide"
+)
+injecter_css()
 
 # --- En-tête ---
 st.title("🏥 Optimisation de l'accès aux centres de santé au Sénégal")
 st.markdown("### Dans le cadre du cours de Convexité et optimisation, ISE1")
 st.markdown("##### Cours dispensé par M. Oumar DIOP")
-st.markdown("###### Année académique 2025-2026")
+st.markdown("######Année académique 2025-2026")
 st.markdown("---")
 
 # --- Colonnes : présentation / navigation ---
@@ -63,4 +61,6 @@ with col2:
         """
     )
 
+
 st.markdown("---")
+
