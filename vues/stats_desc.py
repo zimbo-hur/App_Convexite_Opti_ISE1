@@ -3,11 +3,8 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
-from theme import injecter_css, carte_metrique, appliquer_theme_plotly, COULEURS
+from theme import carte_metrique, appliquer_theme_plotly, COULEURS
 from libelles import libelle, LIBELLES_PARTIES
-
-st.set_page_config(page_title="Statistiques descriptives", page_icon="📊", layout="wide")
-injecter_css()
 
 st.title("📊 Statistiques descriptives")
 st.caption(
