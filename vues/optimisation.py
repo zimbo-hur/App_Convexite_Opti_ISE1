@@ -7,7 +7,7 @@ from pathlib import Path
 
 from theme import carte_metrique, appliquer_theme_plotly, sequence_couleurs, COULEURS
 
-st.title("⚙️ Optimisation de l'allocation des ressources")
+st.title("Optimisation de l'allocation des ressources")
 
 st.markdown(
     r"""
@@ -40,7 +40,7 @@ departements = table["departement"].tolist()
 scores = table["score"].to_numpy()
 n = len(departements)
 
-st.caption(f"📁 {n} départements chargés depuis `data/table_departements.xlsx`.")
+st.caption(f"{n} départements chargés depuis `data/table_departements.xlsx`.")
 
 with st.expander("🔍 Voir la table des facteurs par département"):
     st.dataframe(table, width="stretch")
@@ -50,7 +50,7 @@ st.markdown("---")
 # --------------------------------------------------------------------------
 # 1. Contrainte budgétaire et disponibilité des ressources
 # --------------------------------------------------------------------------
-st.subheader("1️⃣ Budget et disponibilité nationale des ressources")
+st.subheader("Budget et disponibilité nationale des ressources")
 
 budget_total = st.number_input(
     "Budget total disponible (rémunération médecins/infirmiers/sages-femmes, FCFA)",
@@ -72,7 +72,7 @@ st.markdown("---")
 # --------------------------------------------------------------------------
 # 2. Coûts unitaires (uniquement médecins/infirmiers/sages-femmes -> budget)
 # --------------------------------------------------------------------------
-st.subheader("2️⃣ Coûts unitaires (rémunération annuelle, FCFA)")
+st.subheader("Coûts unitaires (rémunération annuelle, FCFA)")
 st.caption("Les lits ne sont pas inclus dans la contrainte budgétaire (coût d'investissement, pas de rémunération).")
 
 c1, c2, c3 = st.columns(3)
@@ -88,7 +88,7 @@ st.markdown("---")
 # --------------------------------------------------------------------------
 # 3. Lancement de l'optimisation
 # --------------------------------------------------------------------------
-st.subheader("3️⃣ Lancer l'optimisation")
+st.subheader("Lancer l'optimisation")
 
 if st.button("🚀 Lancer l'optimisation", type="primary"):
     # x[l, k] : k = 0 médecins, 1 infirmiers, 2 sages-femmes, 3 lits
