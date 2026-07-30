@@ -15,5 +15,6 @@ injecter_css()
 pg = st.navigation([
     st.Page("vues/accueil.py", title="Page d'accueil", icon="🏠", default=True),
     st.Page("vues/stats_desc.py", title="Statistiques descriptives", icon="📊"),
+    st.Page("vues/optimisation.py", title="Optimisation", icon="⚙️"),
 ])
 pg.run()
